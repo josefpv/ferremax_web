@@ -127,9 +127,10 @@ const Productos = () => {
 
     console.log({ productos, clienteId: 1 });
     axios
-      .post(`https://ferremaxapi.azurewebsites.net/api/v1/ventas`, [
-        { productos: carrito, clienteId: 1 },
-      ])
+      .post(`https://ferremaxapi.azurewebsites.net/api/v1/ventas/`, {
+        productos: carrito,
+        clienteId: 1,
+      })
       .then(({ data }) => {
         alert("¡Compra registrada!");
         handleCloseCarrito();
@@ -186,7 +187,7 @@ const Productos = () => {
 
   return (
     <Grid2 container justifyContent="center" sx={{ p: 10 }} spacing={3}>
-      <Drawer open={open} onClose={() => handleOpenCarrito(false)}>
+      <Drawer open={open} onClose={() => setOpen(false)}>
         <Box sx={{ width: 400 }}>
           <Grid2 container>
             <Grid2 md={12} xs={12} sx={{ p: 2 }}>
