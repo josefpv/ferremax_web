@@ -93,7 +93,7 @@ const Despachos = () => {
 
   const handleFetchDespachos = () => {
     axios
-      .get("http://localhost:4000/api/v1/despachos")
+      .get("https://ferremaxapi.azurewebsites.net/api/v1/despachos")
       .then(({ data }) => {
         setDespachos(data);
       })
@@ -104,7 +104,7 @@ const Despachos = () => {
 
   const actualizaDespacho = (id) => {
     axios
-      .put(`http://localhost:4000/api/v1/despachos/${id}`)
+      .put(`https://ferremaxapi.azurewebsites.net/api/v1/despachos/${id}`)
       .then(({ data }) => {
         alert("¡Despacho finalizado!");
         handleFetchDespachos();

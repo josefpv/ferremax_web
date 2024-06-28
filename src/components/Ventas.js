@@ -95,7 +95,7 @@ const Ventas = () => {
 
   const handleFetchVentas = () => {
     axios
-      .get("http://localhost:4000/api/v1/ventas")
+      .get("https://ferremaxapi.azurewebsites.net/api/v1/ventas")
       .then(({ data }) => {
         setVentas(data);
       })
@@ -106,14 +106,18 @@ const Ventas = () => {
 
   const actualizaVenta = (idVenta) => {
     axios
-      .put(`http://localhost:4000/api/v1/ventas/${idVenta}`, { despachado: 1 })
+      .put(`https://ferremaxapi.azurewebsites.net/api/v1/ventas/${idVenta}`, {
+        despachado: 1,
+      })
       .then(({ data }) => {
         alert("¡Venta enviada a despacho!");
         handleFetchVentas();
       })
       .then(() => {
         axios
-          .post("http://localhost:4000/api/v1/despachos/", { idVenta })
+          .post("https://ferremaxapi.azurewebsites.net/api/v1/despachos/", {
+            idVenta,
+          })
           .then(() => {})
           .catch((error_) => console.log(error_));
       })

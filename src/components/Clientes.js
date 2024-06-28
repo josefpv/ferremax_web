@@ -90,7 +90,7 @@ const Clientes = () => {
 
   const handleSaveCliente = () => {
     axios
-      .post("http://localhost:5075/Cliente/nuevo", infoCliente)
+      .post("https://ferremaxapi.azurewebsites.net/Cliente/nuevo", infoCliente)
       .then(({ data }) => {
         alert("¡Cliente registrado!");
         handleFetchClientes();
@@ -111,7 +111,7 @@ const Clientes = () => {
 
   const handleFetchClientes = () => {
     axios
-      .get("http://localhost:5075/Cliente/listar")
+      .get("https://ferremaxapi.azurewebsites.net/Cliente/listar")
       .then(({ data }) => {
         setClientes(data);
       })
