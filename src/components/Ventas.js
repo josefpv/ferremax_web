@@ -18,6 +18,13 @@ import {
   InputAdornment,
   IconButton,
   Badge,
+  Drawer,
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import CheckIcon from "@mui/icons-material/Check";
@@ -25,6 +32,8 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import { DataGrid } from "@mui/x-data-grid";
+import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded";
+import LabelIcon from "@mui/icons-material/Label";
 
 import history from "../history";
 
@@ -38,6 +47,29 @@ function handleClick(event) {
 }
 
 const Ventas = () => {
+  const [ventas, setVentas] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [detalles, setDetalles] = useState([]);
+  const [ventaSeleccion, setVentaSeleccion] = useState([]);
+
+  const handleOpenDetalles = (venta) => {
+    console.log("venta", venta);
+    setVentaSeleccion(venta);
+    axios
+      .get(
+        `https://ferremaxapi.azurewebsites.net/api/v1/ventas/productos/${venta.id}`
+      )
+      .then(({ data }) => {
+        setDetalles(data);
+      });
+    setOpen(true);
+  };
+  const handleCierraDetalles = () => {
+    setVentaSeleccion([]);
+    setOpen(false);
+    setDetalles([]);
+  };
+
   const cols = [
     {
       field: "id",
@@ -86,8 +118,22 @@ const Ventas = () => {
         </Button>
       ),
     },
+    {
+      field: "Detalles",
+      headerName: "Ver",
+      width: 220,
+      renderCell: ({ row }) => (
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<ShoppingBasketRoundedIcon />}
+          onClick={() => handleOpenDetalles(row)}
+        >
+          Ver Productos
+        </Button>
+      ),
+    },
   ];
-  const [ventas, setVentas] = useState([]);
 
   useEffect(() => {
     handleFetchVentas();
@@ -128,6 +174,39 @@ const Ventas = () => {
 
   return (
     <Grid2 container justifyContent="center" sx={{ p: 10 }} spacing={3}>
+      <Drawer open={open} onClose={() => handleCierraDetalles(false)}>
+        <Box sx={{ width: 400 }}>
+          <Grid2 container>
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <Typography>Boleta:</Typography>
+              <Typography variant="h4">{ventaSeleccion.RazonSocial}</Typography>
+              <Typography variant="caption">{ventaSeleccion.fecha}</Typography>
+            </Grid2>
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <List>
+                {detalles?.map((d) => (
+                  <ListItem key={d.id} disablePadding>
+                    <ListItemButton>
+                      <ListItemIcon>
+                        <LabelIcon />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={d.nombre}
+                        secondary={`x${d.cantidad} = $${d.total}`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}{" "}
+              </List>
+            </Grid2>
+
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="h4">{`Total: $${ventaSeleccion.monto_total}`}</Typography>
+            </Grid2>
+          </Grid2>
+        </Box>
+      </Drawer>
       <Grid2 md={12} xs={12}>
         <div role="presentation" onClick={handleClick}>
           <Breadcrumbs aria-label="breadcrumb">

@@ -16,52 +16,27 @@ import {
   InputLabel,
   OutlinedInput,
   InputAdornment,
+  Badge,
+  IconButton,
+  Drawer,
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import CheckIcon from "@mui/icons-material/Check";
 import history from "../history";
-
-const renderProducto = (data, idx) => {
-  return (
-    <Grid2 md={4} xs={4} key={data.id}>
-      <Card sx={{ maxWidth: 345, minHeight: 350, maxHeight: 350 }}>
-        <CardMedia
-          component="img"
-          alt="green iguana"
-          height="140"
-          image={
-            data.imagen.startsWith("http")
-              ? data.imagen
-              : "https://static.vecteezy.com/system/resources/previews/004/141/669/non_2x/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg"
-          }
-        />
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
-            {data.nombre}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {data.descripcion} - {`Cantidad: ${data.cantidad}`}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button size="small">Agregar</Button>
-        </CardActions>
-      </Card>
-    </Grid2>
-  );
-};
-
-function handleClick(event) {
-  event.preventDefault();
-
-  if (Boolean(event.target.href)) {
-    const path = event.target.href.split("/")[3];
-    history.push(`/${path}`);
-  }
-}
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import LabelIcon from "@mui/icons-material/Label";
+import CreditScoreIcon from "@mui/icons-material/CreditScore";
 
 const Productos = () => {
   const [productos, setProductos] = useState([]);
+  const [carrito, setCarrito] = useState([]);
+  const [total, setTotal] = useState(0);
   const [dataNuevoProducto, setDataNuevoProducto] = useState({
     nombre: "",
     descripcion: "",
@@ -71,6 +46,7 @@ const Productos = () => {
       "https://static.vecteezy.com/system/resources/previews/004/141/669/non_2x/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg",
     moneda: "CLP",
   });
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     handleFetchProductos();
@@ -120,9 +96,141 @@ const Productos = () => {
       .catch((error) => console.log(error));
   };
 
+  const handleAgregaCarrito = (item) => {
+    const cantidad = prompt("Ingrese cantidad:");
+    if (isNaN(cantidad)) {
+      alert("Cantidad no valida");
+      return;
+    }
+    setCarrito((prev) => [...prev, { ...item, cantidad }]);
+  };
+
+  const handleOpenCarrito = () => {
+    let t = 0;
+    carrito?.map((item) => {
+      const precio = item.precio_unitario * item.cantidad;
+      t += precio;
+    });
+    setTotal(t);
+    setOpen(true);
+  };
+  const handleCloseCarrito = () => {
+    setCarrito([]);
+    setTotal(0);
+    setOpen(false);
+  };
+
+  const handleCompra = () => {
+    const productos = carrito.map((i) => {
+      return { id: i.id, cantidad: parseInt(i.cantidad) };
+    });
+
+    console.log({ productos, clienteId: 1 });
+    axios
+      .post(`https://ferremaxapi.azurewebsites.net/api/v1/ventas`, [
+        { productos: carrito, clienteId: 1 },
+      ])
+      .then(({ data }) => {
+        alert("¡Compra registrada!");
+        handleCloseCarrito();
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("No se pudo registrar la compra.");
+      });
+  };
+
+  const renderProducto = (data, idx) => {
+    return (
+      <Grid2 md={4} xs={4} key={data.id}>
+        <Card sx={{ maxWidth: 345, minHeight: 350, maxHeight: 350 }}>
+          <CardMedia
+            component="img"
+            alt="green iguana"
+            height="140"
+            image={
+              data.imagen.startsWith("http")
+                ? data.imagen
+                : "https://static.vecteezy.com/system/resources/previews/004/141/669/non_2x/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg"
+            }
+          />
+          <CardContent>
+            <Typography gutterBottom variant="h5" component="div">
+              {data.nombre}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {data.descripcion}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {`$ ${data.precio_unitario}`}
+            </Typography>
+          </CardContent>
+          <CardActions>
+            <Button onClick={() => handleAgregaCarrito(data)} size="small">
+              Agregar
+            </Button>
+          </CardActions>
+        </Card>
+      </Grid2>
+    );
+  };
+
+  function handleClick(event) {
+    event.preventDefault();
+
+    if (Boolean(event.target.href)) {
+      const path = event.target.href.split("/")[3];
+      history.push(`/${path}`);
+    }
+  }
+
   return (
     <Grid2 container justifyContent="center" sx={{ p: 10 }} spacing={3}>
-      <Grid2 md={12} xs={12}>
+      <Drawer open={open} onClose={() => handleOpenCarrito(false)}>
+        <Box sx={{ width: 400 }}>
+          <Grid2 container>
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <Typography variant="h4">Tu Carrito</Typography>
+            </Grid2>
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <List>
+                {carrito?.map((d) => (
+                  <ListItem key={d.id} disablePadding>
+                    <ListItemButton>
+                      <ListItemIcon>
+                        <LabelIcon />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={d.nombre}
+                        secondary={`${d.precio_unitario} x ${d.cantidad} = ${
+                          d.precio_unitario * d.cantidad
+                        }`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Grid2>
+
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="h4">{`Total: ${total}`}</Typography>
+            </Grid2>
+            <Grid2 md={12} xs={12} sx={{ p: 2 }}>
+              <Button
+                color="primary"
+                variant="contained"
+                startIcon={<CreditScoreIcon />}
+                fullWidth
+                onClick={handleCompra}
+              >
+                Comprar
+              </Button>
+            </Grid2>
+          </Grid2>
+        </Box>
+      </Drawer>
+      <Grid2 md={10} xs={12}>
         <div role="presentation" onClick={handleClick}>
           <Breadcrumbs aria-label="breadcrumb">
             <Link underline="hover" color="inherit" href="/">
@@ -136,6 +244,13 @@ const Productos = () => {
             </Link>
           </Breadcrumbs>
         </div>
+      </Grid2>
+      <Grid2 md={2} xs={12}>
+        <IconButton aria-label="cart" onClick={handleOpenCarrito}>
+          <Badge badgeContent={carrito.length} color="primary">
+            <ShoppingCartIcon color="action" />
+          </Badge>
+        </IconButton>
       </Grid2>
       <Grid2 md={12} xs={12}>
         <Paper elevation={3} sx={{ p: 4 }}>
